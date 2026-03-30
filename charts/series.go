@@ -9,6 +9,7 @@ import (
 type SingleSeries struct {
 	Name string `json:"name,omitempty"`
 	Type string `json:"type,omitempty"`
+	Id   string `json:"id,omitempty"`
 
 	// Rectangular charts
 	// Line | Bar
@@ -82,6 +83,8 @@ type SingleSeries struct {
 	Center interface{} `json:"center,omitempty"`
 	// Pie
 	Radius interface{} `json:"radius,omitempty"`
+	// Pie
+	PadAngle float64 `json:"padAngle,omitempty"`
 
 	// Line | Scatter | Radar
 	SymbolSize interface{} `json:"symbolSize,omitempty"`
@@ -95,6 +98,11 @@ type SingleSeries struct {
 	Right             string      `json:"right,omitempty"`
 	Top               string      `json:"top,omitempty"`
 	Bottom            string      `json:"bottom,omitempty"`
+
+	// Sankey
+	NodeWidth types.Int `json:"nodeWidth,omitempty"`
+	NodeGap   types.Int `json:"nodeGap,omitempty"`
+	NodeAlign string    `json:"nodeAlign,omitempty"`
 
 	// Radar
 	RadarIndex int `json:"radarIndex,omitempty"`
@@ -121,12 +129,18 @@ type SingleSeries struct {
 	DatasetIndex int         `json:"datasetIndex,omitempty"`
 
 	// Gauge
-	Progress *opts.Progress `json:"progress,omitempty"`
-	AxisTick *opts.AxisTick `json:"axisTick,omitempty"`
-	Detail   *opts.Detail   `json:"detail,omitempty"`
-	Title    *opts.Title    `json:"title,omitempty"`
-	Min      int            `json:"min,omitempty"`
-	Max      int            `json:"max,omitempty"`
+	Progress   *opts.Progress  `json:"progress,omitempty"`
+	AxisTick   *opts.AxisTick  `json:"axisTick,omitempty"`
+	AxisLabel  *opts.AxisLabel `json:"axisLabel,omitempty"`
+	AxisLine   *opts.AxisLine  `json:"axisLine,omitempty"`
+	Pointer    *opts.Pointer   `json:"pointer,omitempty"`
+	SplitLine  *opts.SplitLine `json:"splitLine,omitempty"`
+	Detail     *opts.Detail    `json:"detail,omitempty"`
+	Title      *opts.Title     `json:"title,omitempty"`
+	Min        int             `json:"min,omitempty"`
+	Max        int             `json:"max,omitempty"`
+	StartAngle float64         `json:"startAngle,omitempty"`
+	EndAngle   float64         `json:"endAngle,omitempty"`
 
 	Large               types.Bool `json:"large,omitempty"`
 	LargeThreshold      int        `json:"largeThreshold,omitempty"`
@@ -149,6 +163,7 @@ type SingleSeries struct {
 	*opts.Encode        `json:"encode,omitempty"`
 	*opts.ItemStyle     `json:"itemStyle,omitempty"`
 	*opts.Label         `json:"label,omitempty"`
+	*opts.LabelLayout   `json:"labelLayout,omitempty"`
 	*opts.LabelLine     `json:"labelLine,omitempty"`
 	*opts.Emphasis      `json:"emphasis,omitempty"`
 	*opts.MarkLines     `json:"markLine,omitempty"`
@@ -159,6 +174,7 @@ type SingleSeries struct {
 	*opts.AreaStyle     `json:"areaStyle,omitempty"`
 	*opts.TextStyle     `json:"textStyle,omitempty"`
 	*opts.CircularStyle `json:"circular,omitempty"`
+	*opts.SeriesTooltip `json:"tooltip,omitempty"`
 
 	// Calendar
 	CalendarIndex int `json:"calendarIndex,omitempty"`
@@ -172,6 +188,12 @@ type SingleSeriesOptFunc func(s *SingleSeries)
 func WithSeriesOpts(opf SingleSeriesOptFunc) SeriesOpts {
 	return func(s *SingleSeries) {
 		opf(s)
+	}
+}
+
+func WithSeriesId(id string) SeriesOpts {
+	return func(s *SingleSeries) {
+		s.Id = id
 	}
 }
 
@@ -219,6 +241,20 @@ func WithLabelOpts(opt opts.Label) SeriesOpts {
 	}
 }
 
+// WithLabelLayoutOpts sets the label.
+func WithLabelLayoutOpts(opt opts.LabelLayout) SeriesOpts {
+	return func(s *SingleSeries) {
+		s.LabelLayout = &opt
+	}
+}
+
+// WithLabelLineOpts sets the label.
+func WithLabelLineOpts(opt opts.LabelLine) SeriesOpts {
+	return func(s *SingleSeries) {
+		s.LabelLine = &opt
+	}
+}
+
 // WithEmphasisOpts sets the emphasis.
 func WithEmphasisOpts(opt opts.Emphasis) SeriesOpts {
 	return func(s *SingleSeries) {
@@ -261,6 +297,13 @@ func WithCircularStyleOpts(opt opts.CircularStyle) SeriesOpts {
 	}
 }
 
+// WithSeriesTooltipOpts With Tooltip Opts
+func WithSeriesTooltipOpts(opt opts.SeriesTooltip) SeriesOpts {
+	return func(s *SingleSeries) {
+		s.SeriesTooltip = &opt
+	}
+}
+
 /* Chart Options */
 
 // WithBarChartOpts sets the BarChart option.
@@ -276,6 +319,7 @@ func WithBarChartOpts(opt opts.BarChart) SeriesOpts {
 		s.Stack = opt.Stack
 		s.BarGap = opt.BarGap
 		s.BarCategoryGap = opt.BarCategoryGap
+		s.BarWidth = opt.BarWidth
 	}
 }
 
@@ -357,6 +401,7 @@ func WithPieChartOpts(opt opts.PieChart) SeriesOpts {
 		s.RoseType = opt.RoseType
 		s.Center = opt.Center
 		s.Radius = opt.Radius
+		s.PadAngle = opt.PadAngle
 	}
 }
 

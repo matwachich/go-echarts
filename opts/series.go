@@ -101,7 +101,7 @@ type Label struct {
 	// {c}: the value of a data item.
 	// {@xxx}: the value of a dimension named"xxx", for example,{@product}refers the value of"product"` dimension.
 	// {@[n]}: the value of a dimension at the index ofn, for example,{@[3]}` refers the value at dimensions[3].
-	Formatter string `json:"formatter,omitempty"`
+	Formatter types.FuncStr `json:"formatter,omitempty"`
 }
 
 // LabelLine Configuration of label guide line.
@@ -120,9 +120,19 @@ type LabelLine struct {
 	LineStyle *LineStyle `json:"lineStyle,omitempty"`
 }
 
+// LabelLayout Unified layout configuration of labels
+type LabelLayout struct {
+	// HideOverlap Whether to hide the overlapped labels.
+	HideOverlap types.Bool `json:"hideOverlap,omitempty"`
+	// MoveOverlap Whether to hide move the overlapped labels to avoid overlapping.
+	// Currently supported configurations:
+	// 'shiftX' Place the labels on horizontal direction sequencely, used when aligned horizontally.
+	// 'shiftY' Place the labels on vertical direction sequencely, used when aligned vertically.
+	MoveOverlap string `json:"moveOverlap,omitempty"`
+}
+
 // Blur Configurations of blur state. Whether to blur follows the series.
 type Blur struct {
-
 	// the blur style of item
 	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
 
@@ -137,6 +147,18 @@ type Emphasis struct {
 
 	// the emphasis style of item
 	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
+
+	// Focus configures the behavior of a Sunburst chart when a user interacts with the data.
+	// When the data is highlighted, whether to fade out of other data to focus the highlighted.
+	// The following configurations are supported:
+	//   'none' Do not fade out other data, it's by default.
+	//   'self' Only focus (not fade out) the element of the currently highlighted data.
+	//   'series' Focus on all elements of the series which the currently highlighted data belongs to.
+	//   'ancestor' Focus on all ancestor nodes.
+	//   'descendant' Focus on all descendants nodes.
+	//   'relative' Focus on all ancestor and descendants nodes. (Since v5.6.0)
+	// https://echarts.apache.org/en/option.html#series-sunburst.emphasis.focus
+	Focus string `json:"focus,omitempty"`
 }
 
 // Animation represents animation behaviors of series.
@@ -160,6 +182,12 @@ type ItemStyle struct {
 	// Kline Down candle color
 	Color0 string `json:"color0,omitempty"`
 
+	// Geo area filling color
+	AreaColor string `json:"areaColor,omitempty"`
+
+	// BorderRadius configures the radius of items in the chart.
+	BorderRadius string `json:"borderRadius,omitempty"`
+
 	// BorderColor is the hart border color
 	// Kline  Up candle border color
 	BorderColor string `json:"borderColor,omitempty"`
@@ -177,7 +205,7 @@ type ItemStyle struct {
 	GapWidth float32 `json:"gapWidth,omitempty"`
 
 	// Opacity of the component. Supports value from 0 to 1, and the component will not be drawn when set to 0.
-	Opacity float32 `json:"opacity,omitempty"`
+	Opacity types.Float `json:"opacity,omitempty"`
 
 	// ShadowBlur Size of shadow blur.
 	// This attribute should be used along with shadowColor,shadowOffsetX, shadowOffsetY to set shadow to component.
@@ -491,7 +519,7 @@ type LineStyle struct {
 	Type string `json:"type,omitempty"`
 
 	// Opacity of the component. Supports value from 0 to 1, and the component will not be drawn when set to 0.
-	Opacity float32 `json:"opacity,omitempty"`
+	Opacity types.Float `json:"opacity,omitempty"`
 
 	// Curveness of edge. The values from 0 to 1 could be set.
 	// it would be larger as the the value becomes larger. default 0
@@ -503,8 +531,18 @@ type AreaStyle struct {
 	// Fill area color.
 	Color string `json:"color,omitempty"`
 
+	// Origin position of area.
+	// By default, the area between axis line and data will be filled.
+	// This config enables you to fill the area from data to the max or min of the axis data or a specified value.
+	// Valid values:
+	// 'auto' to fill between axis line and data (Default)
+	// 'start' to fill between min axis value (when not inverse) and data
+	// 'end' to fill between max axis value (when not inverse) and data
+	//  number to fill between specified value and data
+	Origin string `json:"origin,omitempty"`
+
 	// Opacity of the component. Supports value from 0 to 1, and the component will not be drawn when set to 0.
-	Opacity float32 `json:"opacity,omitempty"`
+	Opacity types.Float `json:"opacity,omitempty"`
 }
 
 // GraphForce Configuration items about force-directed layout. Force-directed layout simulates
@@ -534,7 +572,9 @@ type GraphForce struct {
 	// It can be an array to represent the range of edge length. In this case edge with larger
 	// value will be shorter, which means two nodes are closer. And edge with smaller value will be longer.
 	// default 30
-	EdgeLength float32 `json:"edgeLength,omitempty"`
+	// It can be an array to represent the range of edge length. In this case edge with larger value will
+	// be shorter, which means two nodes are closer. And edge with smaller value will be longer.
+	EdgeLength interface{} `json:"edgeLength,omitempty"`
 }
 
 // TreeLeaves Leaf node special configuration, the leaf node and non-leaf node label location is different.
@@ -768,4 +808,84 @@ type Encode struct {
 	ItemName interface{} `json:"itemName,omitempty"`
 
 	ItemGroupID interface{} `json:"itemGroupId,omitempty"`
+}
+
+// SeriesTooltip is the option set for a tooltip component within series.
+// e.g. https://echarts.apache.org/en/option.html#series-line.tooltip
+type SeriesTooltip struct {
+	// The content formatter of tooltip's floating layer which supports string template and callback function.
+	//
+	// 1. String template
+	// The template variables are {a}, {b}, {c}, {d} and {e}, which stands for series name,
+	// data name and data value and ect. When trigger is set to be 'axis', there may be data from multiple series.
+	// In this time, series index can be refereed as {a0}, {a1}, or {a2}.
+	// {a}, {b}, {c}, {d} have different meanings for different series types:
+	//
+	// * Line (area) charts, bar (column) charts, K charts: {a} for series name,
+	//   {b} for category name, {c} for data value, {d} for none;
+	// * Scatter (bubble) charts: {a} for series name, {b} for data name, {c} for data value, {d} for none;
+	// * Map: {a} for series name, {b} for area name, {c} for merging data, {d} for none;
+	// * Pie charts, gauge charts, funnel charts: {a} for series name, {b} for data item name,
+	//   {c} for data value, {d} for percentage.
+	//
+	// 2. Callback function
+	// The format of callback function:
+	// (params: Object|Array, ticket: string, callback: (ticket: string, html: string)) => string
+	// The first parameter params is the data that the formatter needs. Its format is shown as follows:
+	// {
+	//    componentType: 'series',
+	//    // Series type
+	//    seriesType: string,
+	//    // Series index in option.series
+	//    seriesIndex: number,
+	//    // Series name
+	//    seriesName: string,
+	//    // Data name, or category name
+	//    name: string,
+	//    // Data index in input data array
+	//    dataIndex: number,
+	//    // Original data as input
+	//    data: Object,
+	//    // Value of data. In most series it is the same as data.
+	//    // But in some series it is some part of the data (e.g., in map, radar)
+	//    value: number|Array|Object,
+	//    // encoding info of coordinate system
+	//    // Key: coord, like ('x' 'y' 'radius' 'angle')
+	//    // value: Must be an array, not null/undefined. Contain dimension indices, like:
+	//    // {
+	//    //     x: [2] // values on dimension index 2 are mapped to x axis.
+	//    //     y: [0] // values on dimension index 0 are mapped to y axis.
+	//    // }
+	//    encode: Object,
+	//    // dimension names list
+	//    dimensionNames: Array<String>,
+	//    // data dimension index, for example 0 or 1 or 2 ...
+	//    // Only work in `radar` series.
+	//    dimensionIndex: number,
+	//    // Color of data
+	//    color: string,
+	//
+	//    // the percentage of pie chart
+	//    percent: number,
+	// }
+	Formatter types.FuncStr `json:"formatter,omitempty"`
+
+	// ValueFormatter Callback function for formatting the value section in tooltip.
+	// valueFormatter: (value) => '$' + value.toFixed(2)
+	ValueFormatter types.FuncStr `json:"valueFormatter,omitempty"`
+
+	// The content formatter of tooltip's floating layer which supports string template and callback function.
+	// See https://echarts.apache.org/en/option.html#grid.tooltip.position
+	// May be a string ("inside", "top", "bottom", "left", "right") or a function of form:
+	//   (point: Array, params: Object|Array.<Object>, dom: HTMLDomElement, rect: Object, size: Object) => Array
+	Position types.FuncStr `json:"position,omitempty"`
+
+	// The border color of tooltip's floating layer.
+	BorderColor string `json:"borderColor,omitempty"`
+
+	// The background color of tooltip's floating layer. e.g. 'rgba(50,50,50,0.7)'
+	BackgroundColor string `json:"backgroundColor,omitempty"`
+
+	// Text style
+	TextStyle *TextStyle `json:"textStyle,omitempty"`
 }

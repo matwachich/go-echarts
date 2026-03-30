@@ -46,8 +46,6 @@ type LineChart struct {
 	Stack string
 
 	// Whether to show as smooth curve.
-	// If is typed in types.Boolean, then it means whether to enable smoothing. If is
-	// typed in number, valued from 0 to 1, then it means smoothness. A smaller value makes it less smooth.
 	Smooth types.Bool
 
 	// Whether to connect the line across null points.
@@ -56,4 +54,29 @@ type LineChart struct {
 	// Whether to show as a step line. It can be true, false. Or 'start', 'middle', 'end'.
 	// Which will configure the turn point of step line.
 	Step interface{}
+}
+
+// LineData
+// https://echarts.apache.org/en/option.html#series-line.data
+type LineData struct {
+	// Name of data item.
+	Name string `json:"name,omitempty"`
+
+	// Value of a single data item.
+	Value interface{} `json:"value,omitempty"`
+
+	// Symbol of single data.
+	// Icon types provided by ECharts includes 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow', 'none'
+	// It can be set to an image with 'image://url' , in which URL is the link to an image, or dataURI of an image.
+	Symbol string `json:"symbol,omitempty"`
+
+	// single data symbol size. It can be set to single numbers like 10, or
+	// use an array to represent width and height. For example, [20, 10] means symbol width is 20, and height is10
+	SymbolSize int `json:"symbolSize,omitempty"`
+
+	// Index of x axis to combine with, which is useful for multiple x axes in one chart.
+	XAxisIndex int `json:"XAxisIndex,omitempty"`
+
+	// Index of y axis to combine with, which is useful for multiple y axes in one chart.
+	YAxisIndex int `json:"YAxisIndex,omitempty"`
 }

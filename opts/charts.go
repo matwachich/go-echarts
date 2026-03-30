@@ -31,25 +31,6 @@ type SunburstChart struct {
 	AnimationDelayUpdate int `json:"animationDelayUpdate,omitempty"`
 }
 
-// BarData
-// https://echarts.apache.org/en/option.html#series-bar.data
-type BarData struct {
-	// Name of data item.
-	Name string `json:"name,omitempty"`
-
-	// Value of a single data item.
-	Value interface{} `json:"value,omitempty"`
-
-	// The style setting of the text label in a single bar.
-	Label *Label `json:"label,omitempty"`
-
-	// ItemStyle settings in this series data.
-	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
-
-	// Tooltip settings in this series data.
-	Tooltip *Tooltip `json:"tooltip,omitempty"`
-}
-
 // Bar3DChart is the option set for a 3D bar chart.
 type Bar3DChart struct {
 	// Shading is the coloring effect of 3D graphics in 3D Bar.
@@ -85,16 +66,6 @@ type BoxPlotData struct {
 
 	// Tooltip settings in this series data.
 	Tooltip *Tooltip `json:"tooltip,omitempty"`
-}
-
-// EffectScatterData
-// https://echarts.apache.org/en/option.html#series-effectScatter.data
-type EffectScatterData struct {
-	// Name of data item.
-	Name string `json:"name,omitempty"`
-
-	// Value of a single data item.
-	Value interface{} `json:"value,omitempty"`
 }
 
 // FunnelData
@@ -171,6 +142,16 @@ type GraphChart struct {
 
 	// SymbolKeepAspect is whether to keep aspect for symbols in the form of path://.
 	SymbolKeepAspect types.Bool
+
+	// Animation determines whether to enable animation.
+	Animation types.Bool
+
+	// Emphasis contains configurations of emphasis state.
+	Emphasis *Emphasis
+
+	// LineStyle controls the style of edge line. lineStyle.color can be 'source' or 'target',
+	// which will use the color of source node or target node.
+	LineStyle *LineStyle
 }
 
 // GraphNode represents a data node in graph chart.
@@ -289,31 +270,6 @@ type KlineChart struct {
 	BarMaxWidth string
 }
 
-// LineData
-// https://echarts.apache.org/en/option.html#series-line.data
-type LineData struct {
-	// Name of data item.
-	Name string `json:"name,omitempty"`
-
-	// Value of a single data item.
-	Value interface{} `json:"value,omitempty"`
-
-	// Symbol of single data.
-	// Icon types provided by ECharts includes 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow', 'none'
-	// It can be set to an image with 'image://url' , in which URL is the link to an image, or dataURI of an image.
-	Symbol string `json:"symbol,omitempty"`
-
-	// single data symbol size. It can be set to single numbers like 10, or
-	// use an array to represent width and height. For example, [20, 10] means symbol width is 20, and height is10
-	SymbolSize int `json:"symbolSize,omitempty"`
-
-	// Index of x axis to combine with, which is useful for multiple x axes in one chart.
-	XAxisIndex int `json:"XAxisIndex,omitempty"`
-
-	// Index of y axis to combine with, which is useful for multiple y axes in one chart.
-	YAxisIndex int `json:"YAxisIndex,omitempty"`
-}
-
 // LiquidChart
 // reference https://github.com/ecomfe/echarts-liquidfill
 type LiquidChart struct {
@@ -352,38 +308,6 @@ type MapData struct {
 // ParallelData
 // https://echarts.apache.org/en/option.html#series-parallel.data
 type ParallelData struct {
-	// Name of data item.
-	Name string `json:"name,omitempty"`
-
-	// Value of a single data item.
-	Value interface{} `json:"value,omitempty"`
-}
-
-// PieData
-// https://echarts.apache.org/en/option.html#series-pie.data
-type PieData struct {
-	// Name of data item.
-	Name string `json:"name,omitempty"`
-
-	// Value of a single data item.
-	Value interface{} `json:"value,omitempty"`
-
-	// Whether the data item is selected.
-	Selected types.Bool `json:"selected,omitempty"`
-
-	// The label configuration of a single sector.
-	Label *Label `json:"label,omitempty"`
-
-	// Graphic style of , emphasis is the style when it is highlighted, like being hovered by mouse, or highlighted via legend connect.
-	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
-
-	// tooltip settings in this series data.
-	Tooltip *Tooltip `json:"tooltip,omitempty"`
-}
-
-// RadarData
-// https://echarts.apache.org/en/option.html#series-radar
-type RadarData struct {
 	// Name of data item.
 	Name string `json:"name,omitempty"`
 
@@ -589,13 +513,25 @@ type TreeMapNode struct {
 	Children []TreeMapNode `json:"children,omitempty"`
 }
 
-// SunBurstData data
+// SunBurstData holds the data structure of series-sunburst.data is like tree.
+// https://echarts.apache.org/en/option.html#series-sunburst.data
 type SunBurstData struct {
-	// Name of data item.
+	// Name displayed in each sector.
 	Name string `json:"name,omitempty"`
-	// Value of data item.
+	// Value for each item. If contains children, value can be left unset, and sum of children values will be used in this case.
 	Value float64 `json:"value,omitempty"`
-	// sub item of data item
+	// ItemStyle specifies the style of the sector of the sunburst chart.
+	// You can specify the style of all sectors with series.itemStyle, or specify the style of each level of sectors with
+	// series.levels.itemStyle, or specify a specific style for each sector with series.data.itemStyle. The priority is
+	// from low to high, that is, if series.data.itemStyle is defined, it will override series.itemStyle and series.levels.itemStyle.
+	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
+	// Tooltip configures the tool-tip settings in this series data.
+	Tooltip *Tooltip `json:"tooltip,omitempty"`
+	// Label configures the style of the label of the sector.
+	Label *Label `json:"label,omitempty"`
+	// Emphasis configures the emphasis state.
+	Emphasis *Emphasis `json:"emphasis,omitempty"`
+	// Children are the children nodes defined recursively.
 	Children []*SunBurstData `json:"children,omitempty"`
 }
 
@@ -615,14 +551,133 @@ type CustomChart struct {
 
 // Progress is the options set for progress.
 type Progress struct {
-	// Wether to show the progress
+	// Whether to show the progress, default is false.
 	Show types.Bool `json:"show,omitempty"`
+
+	// Whether the progress overlaps when there are multiple groups of data, default is true.
+	Overlap types.Bool `json:"overlap,omitempty"`
+
 	// Width of the progress in px
 	Width int `json:"width,omitempty"`
+
+	// Whether to add round caps at the end, default is false.
+	RoundCap types.Bool `json:"roundCap,omitempty"`
+
+	// Whether to clip overflow, default is false.
+	Clip types.Bool `json:"clip,omitempty"`
+
+	// The style of progress.
+	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
 }
 
 // Detail is the options set for detail (e.g. on a gauge).
 type Detail struct {
+	// Whether to show the details, default is true.
+	Show types.Bool `json:"show,omitempty"`
+
+	// Font color
+	Color string `json:"color,omitempty"`
+
+	// Font style
+	// Options: 'normal', 'italic', 'oblique'
+	FontStyle string `json:"fontStyle,omitempty"`
+
+	// FontWeight main title font thick weight.
+	// Options are:
+	// 'normal'
+	// 'bold'
+	// 'bolder'
+	// 'lighter'
+	// 100 | 200 | 300 | 400...
+	FontWeight string `json:"fontWeight,omitempty"`
+
+	// Font family the main title font family.
+	// Options: "sans-serif", 'serif' , 'monospace', 'Arial', 'Courier New', 'Microsoft YaHei', ...
+	FontFamily string `json:"fontFamily,omitempty"`
+
+	// Font size of the value in px
+	FontSize int `json:"fontSize,omitempty"`
+
+	// Line height of the text fragment.
+	LineHeight int `json:"lineHeight,omitempty"`
+
+	// Background color of label, which is transparent by default.
+	BackgroundColor string `json:"backgroundColor,omitempty"`
+
+	// Border color of label.
+	BorderColor string `json:"borderColor,omitempty"`
+
+	// Border width of label.
+	BorderWidth int `json:"borderWidth,omitempty"`
+
+	// Border radius of label.
+	BorderRadius int `json:"borderRadius,omitempty"`
+
+	// Border type of label.
+	// Options: 'solid', 'dashed', 'dotted'
+	BorderType string `json:"borderType,omitempty"`
+
+	// Border dash offset of label.
+	BorderDashOffset int `json:"borderDashOffset,omitempty"`
+
+	// Shadow blur of text block.
+	ShadowBlur int `json:"shadowBlur,omitempty"`
+
+	// Shadow color of text block.
+	ShadowColor string `json:"shadowColor,omitempty"`
+
+	// Shadow X offset of text block.
+	ShadowOffsetX int `json:"shadowOffsetX,omitempty"`
+
+	// Shadow Y offset of text block.
+	ShadowOffsetY int `json:"shadowOffsetY,omitempty"`
+
+	// Padding title space around content. See legend.textStyle.padding
+	// The unit is px. Default values for each position are 5.
+	// And they can be set to different values with left, right, top, and bottom.
+	Padding interface{} `json:"padding,omitempty"`
+
+	// Width of text block.
+	Width int `json:"width,omitempty"`
+
+	// Height of text block.
+	Height int `json:"height,omitempty"`
+
+	// Text border color.
+	TextBorderColor string `json:"textBorderColor,omitempty"`
+
+	// Text border width.
+	TextBorderWidth int `json:"textBorderWidth,omitempty"`
+
+	// Text border type
+	// Options: 'solid', 'dashed', 'dotted'
+	TextBorderType string `json:"textBorderType,omitempty"`
+
+	// Text border dash offset.
+	TextBorderDashOffset int `json:"textBorderDashOffset,omitempty"`
+
+	// Text shadow color.
+	TextShadowColor string `json:"textShadowColor,omitempty"`
+
+	// Text shadow blur.
+	TextShadowBlur int `json:"textShadowBlur,omitempty"`
+
+	// Text shadow X offset.
+	TextShadowOffsetX int `json:"textShadowOffsetX,omitempty"`
+
+	// Text shadow Y offset.
+	TextShadowOffsetY int `json:"textShadowOffsetY,omitempty"`
+
+	// Determine how to display the text when it's overflow. Available when width is set.
+	//
+	// 'truncate' Truncate the text and trailing with ellipsis.
+	// 'break' Break by word
+	// 'breakAll' Break by character.
+	Overflow string `json:"overflow,omitempty"`
+
+	// Ellipsis
+	Ellipsis types.Bool `json:"ellipsis,omitempty"`
+
 	// The content formatter of value
 	//
 	// 1. String template
@@ -633,15 +688,51 @@ type Detail struct {
 	// (value: number) => string
 	Formatter types.FuncStr `json:"formatter,omitempty"`
 
-	// Font size of the value in px
-	FontSize int `json:"fontSize,omitempty"`
-
 	// Value position relative to the center of chart
 	// OffceCenter is provided as [x, y] where x and y are either a number (px, provided
 	// as string) or a percentage.
 	// Positive values move the chart value to [right, bottom], negative values vice
 	// versa.
 	OffsetCenter []string `json:"offsetCenter,omitempty"`
+}
+
+// Pointer is the options set for Pointer (e.g. on a gauge).
+type Pointer struct {
+	// Whether to show the pointer, default true.
+	Show types.Bool `json:"show,omitempty"`
+
+	// Whether to show the pointer above detail and title, default true.
+	ShowAbove types.Bool `json:"ShowAbove,omitempty"`
+
+	// Icon of the legend items.
+	// Icon types provided by ECharts includes
+	// 'circle', 'rect', 'roundRect', 'triangle', 'diamond', 'pin', 'arrow', 'none'
+	// It can be set to an image with 'image://url' , in which URL is the link to an image, or dataURI of an image.
+	// An image URL example:
+	//   'image://http://example.website/a/b.png'
+	// A dataURI example:
+	//
+	// 'image://data:image/gif;base64,KOY......'
+	// Icons can be set to arbitrary vector path via 'path://' in ECharts.
+	// As compared with a raster image, vector paths prevent jagging and blurring when scaled, and have better control over changing colors.
+	// For example:
+	//
+	// 'path://M30.9,53.2C16.8,...'
+	Icon string `json:"icon,omitempty"`
+
+	// Gauge
+	// Value position relative to the center of chart
+	// OffsetCenter is provided as [x, y] where x and y are either a number (px, provided
+	// as string) or a percentage.
+	// Positive values move the chart value to [right, bottom], negative values vice
+	// versa.
+	OffsetCenter []string `json:"offsetCenter,omitempty"`
+
+	// The length of pointer which could be absolute value and also the percentage relative to radius, e.g. '60' or '60%'.
+	Length string `json:"length,omitempty"`
+
+	// The style of pointer.
+	ItemStyle *ItemStyle `json:"itemStyle,omitempty"`
 }
 
 // CustomData

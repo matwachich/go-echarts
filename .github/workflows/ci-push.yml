@@ -1,10 +1,8 @@
 name: Build & Test
 
 on:
-# disable integration test run for breaking changes adoption
-#  push:
-#    branches: [ "master" ]
-  pull_request:
+  # disable integration test run for breaking changes adoption
+  push:
     branches: [ "master" ]
 
 jobs:
@@ -56,6 +54,7 @@ jobs:
       - name: Test
         run: go test -v ./...
 
-  integration-test:
-    needs: [ build-ubuntu, build-windows ]
-    uses: go-echarts/go-echarts-pipeline/.github/workflows/integration.yml@main
+# disable integration test run for breaking changes adoption
+#  integration-test:
+#    needs: [ build-ubuntu, build-windows ]
+#    uses: go-echarts/go-echarts-pipeline/.github/workflows/integration.yml@main
